@@ -87,5 +87,41 @@ class ReversiTest(unittest.TestCase):
         legal_moves = Board().get_legal_moves(reversi.WHITE)
         self.assertSetEqual(set(expected_legal_moves), legal_moves)
 
-    def test(self):
-        Board().pretty_print()
+    def testThatPerformLegalMoveReturnsTrue(self):
+        board = Board()
+        performed = board.perform_move(2, 4)
+        self.assertTrue(performed)
+
+    def testThatAfterMoveCurrentPlayerChanged(self):
+        board = Board()
+        board.perform_move(2, 4)
+        self.assertEquals(reversi.WHITE, board.current_player)
+
+    def testThatIllegalMoveIsRefused(self):
+        board = Board()
+        performed = board.perform_move(2, 3)
+        self.assertFalse(performed)
+        self.assertEquals(reversi.BLACK, board.current_player)
+
+    def testThatAfterMoveTheFieldContainsToken(self):
+        board = Board()
+        board.perform_move(2, 4)
+        self.assertEquals(reversi.BLACK, board.get(2, 4))
+
+    def testThatAfterMoveOpponentsTokenIsTurned(self):
+        board = Board()
+        board.perform_move(2, 4)
+        self.assertEquals(reversi.BLACK, board.get(3, 4))
+
+    def testThatAfterMoveMultipleTokensAreTurned(self):
+        # ARRANGE
+        board = Board()
+        board.board[2][4] = reversi.WHITE
+        board.board[1][3] = reversi.WHITE
+        board.board[1][2] = reversi.BLACK
+        # ACT
+        board.perform_move(1, 4)
+        # ASSERT
+        self.assertEquals(reversi.BLACK, board.get(1, 3))
+        self.assertEquals(reversi.BLACK, board.get(2, 4))
+        self.assertEquals(reversi.BLACK, board.get(3, 4))

@@ -52,7 +52,7 @@ class Board:
             ['.', '.', '.', '.', '.', '.', '.', '.'],
             ['.', '.', '.', '.', '.', '.', '.', '.']
         ]
-        self.current_player = ""
+        self.current_player = BLACK
 
     def pretty_print(self):
         for row in range(len(self.board)):
@@ -110,3 +110,28 @@ class Board:
 
     def within_board_bounds(self, field, vert, hor):
         return field.row + 2 * vert < self.rows() and field.column + 2 * hor < self.columns()
+
+    def perform_move(self, vert, hor):
+        legal = self.is_legal_move(Field(vert, hor))
+        if legal:
+            self.place_token(vert, hor)
+            self.current_player = get_opponent(self.current_player)
+            return True
+        else:
+            return False
+
+    def place_token(self, vert, hor):
+        """Place own token on the specified field
+        and look in all 4 directions for flippable opponent's tokens."""
+        self.board[vert][hor] = self.current_player
+        self.flip(vert, hor,  -1, 0)
+        self.flip(vert, hor, 1, 0)
+        self.flip(vert, hor, 0, -1)
+        self.flip(vert, hor,  0, 1)
+
+    def flip(self, vert, hor, look_vert, look_hor):
+        if vert + look_vert < len(self.board) and hor + look_hor < len(self.board[vert]):
+            if self.board[vert + look_vert][hor + look_hor] == get_opponent(self.current_player):
+                self.board[vert + look_vert][hor + look_hor] = self.current_player
+                self.flip(vert + look_vert, hor + look_hor, look_vert, look_hor)
+
