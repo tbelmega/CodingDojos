@@ -87,6 +87,26 @@ class ReversiTest(unittest.TestCase):
         legal_moves = Board().get_legal_moves(reversi.WHITE)
         self.assertSetEqual(set(expected_legal_moves), legal_moves)
 
+    def testThatDiagonalMovesToUpperRightAreLegal(self):
+        board = Board()
+        board.board[4][3] = reversi.BLACK
+        self.assertTrue(board.is_legal_move(Field(2, 5)))
+
+    def testThatDiagonalMovesToLowerLeftAreLegal(self):
+        board = Board()
+        board.board[3][4] = reversi.BLACK
+        self.assertTrue(board.is_legal_move(Field(5, 2)))
+
+    def testThatDiagonalMovesToUpperLeftAreLegal(self):
+        board = Board()
+        board.board[3][3] = reversi.WHITE
+        self.assertTrue(board.is_legal_move(Field(2, 2)))
+
+    def testThatDiagonalMovesToLowerRightAreLegal(self):
+        board = Board()
+        board.board[4][4] = reversi.WHITE
+        self.assertTrue(board.is_legal_move(Field(5, 5)))
+
     def testThatPerformLegalMoveReturnsTrue(self):
         board = Board()
         performed = board.perform_move(2, 4)
@@ -131,3 +151,13 @@ class ReversiTest(unittest.TestCase):
         board.perform_move(2, 4)
         self.assertEquals(4, board.count(reversi.BLACK))
         self.assertEquals(1, board.count(reversi.WHITE))
+
+    def testThatBestLegalMoveIsFound(self):
+        # ARRANGE
+        board = Board()
+        board.board[2][4] = reversi.WHITE
+        board.board[1][3] = reversi.WHITE
+        board.board[1][2] = reversi.BLACK
+        board.board[2][5] = reversi.BLACK
+
+

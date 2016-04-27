@@ -3,6 +3,7 @@ This is an implementation of the KataReversi <href>http://codingdojo.org/cgi-bin
 The task is to return a representation of all legal moves for a player in the Reversi game,
 given a board situation and the color of the player.
 """
+from copy import copy, deepcopy
 
 EMPTY_FIELD = '.'
 BLACK = 'B'
@@ -55,10 +56,20 @@ class Board:
         self.current_player = BLACK
 
     def pretty_print(self):
-        for row in range(len(self.board)):
+        Board.print_board(self.board)
+
+    def pretty_print_legal_moves(self, player):
+        board_copy = deepcopy(self.board)
+        for field in self.get_legal_moves(player):
+            board_copy[field.row][field.column] = 'o'
+        Board.print_board(board_copy)
+
+    @staticmethod
+    def print_board(board):
+        for row in range(len(board)):
             row_string = ""
-            for column in range(len(self.board[row])):
-                row_string += self.get(row, column)
+            for column in range(len(board[row])):
+                row_string += board[row][column] + " "
             print row_string
 
     def rows(self):
@@ -84,6 +95,13 @@ class Board:
         return legal_moves
 
     def is_legal_move(self, field):
+        empty = self.board[field.row][field.column] == EMPTY_FIELD
+        if not empty:
+            return False
+        else:
+            return self.check_adjacent_fields(field)
+
+    def check_adjacent_fields(self, field):
         """A 'legal constellation' is the combination of the param field,
         an adjacent field covered by a token of the opponent,
         and a field covered by the player right behind that.
@@ -92,7 +110,11 @@ class Board:
         below = self.check_for_legal_constellation(field, 1, 0)
         on_the_left = self.check_for_legal_constellation(field, 0, -1)
         on_the_right = self.check_for_legal_constellation(field, 0, 1)
-        return above or below or on_the_left or on_the_right
+        on_the_upper_right = self.check_for_legal_constellation(field, -1, 1)
+        on_the_lower_right = self.check_for_legal_constellation(field, 1, 1)
+        on_the_lower_left = self.check_for_legal_constellation(field, 1, -1)
+        on_the_upper_left = self.check_for_legal_constellation(field, -1, -1)
+        return above or below or on_the_left or on_the_right or on_the_lower_right or on_the_upper_left or on_the_upper_right or on_the_lower_left
 
     def check_for_legal_constellation(self, field, vert, hor):
         constellation_is_within_bounds = self.within_board_bounds(field, vert, hor)
@@ -124,10 +146,10 @@ class Board:
         """Place own token on the specified field
         and look in all 4 directions for flippable opponent's tokens."""
         self.board[vert][hor] = self.current_player
-        self.flip(vert, hor,  -1, 0)
+        self.flip(vert, hor, -1, 0)
         self.flip(vert, hor, 1, 0)
         self.flip(vert, hor, 0, -1)
-        self.flip(vert, hor,  0, 1)
+        self.flip(vert, hor, 0, 1)
 
     def flip(self, vert, hor, look_vert, look_hor):
         if vert + look_vert < len(self.board) and hor + look_hor < len(self.board[vert]):
@@ -142,3 +164,5 @@ class Board:
                 if self.get(row, column) == player:
                     count += 1
         return count
+
+
