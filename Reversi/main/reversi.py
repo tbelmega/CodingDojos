@@ -106,15 +106,13 @@ class Board:
         an adjacent field covered by a token of the opponent,
         and a field covered by the player right behind that.
         :param field: a Field on this board"""
-        above = self.check_for_legal_constellation(field, -1, 0)
-        below = self.check_for_legal_constellation(field, 1, 0)
-        on_the_left = self.check_for_legal_constellation(field, 0, -1)
-        on_the_right = self.check_for_legal_constellation(field, 0, 1)
-        on_the_upper_right = self.check_for_legal_constellation(field, -1, 1)
-        on_the_lower_right = self.check_for_legal_constellation(field, 1, 1)
-        on_the_lower_left = self.check_for_legal_constellation(field, 1, -1)
-        on_the_upper_left = self.check_for_legal_constellation(field, -1, -1)
-        return above or below or on_the_left or on_the_right or on_the_lower_right or on_the_upper_left or on_the_upper_right or on_the_lower_left
+        for vert in range(-1, 2):
+            for hor in range(-1, 2):
+                # check all combinations of vertical and horizontal deltas, apart from (0, 0)
+                if not (vert == 0 and hor == 0):
+                    if self.check_for_legal_constellation(field, vert, hor):
+                        return True
+        return False
 
     def check_for_legal_constellation(self, field, vert, hor):
         constellation_is_within_bounds = self.within_board_bounds(field, vert, hor)
