@@ -135,3 +135,10 @@ class Board:
                 self.board[vert + look_vert][hor + look_hor] = self.current_player
                 self.flip(vert + look_vert, hor + look_hor, look_vert, look_hor)
 
+    def count(self, player):
+        count = 0
+        for row in range(len(self.board)):
+            for column in range(len(self.board[row])):
+                if self.get(row, column) == player:
+                    count += 1
+        return count

@@ -125,3 +125,9 @@ class ReversiTest(unittest.TestCase):
         self.assertEquals(reversi.BLACK, board.get(1, 3))
         self.assertEquals(reversi.BLACK, board.get(2, 4))
         self.assertEquals(reversi.BLACK, board.get(3, 4))
+
+    def testThatTokensOnBoardAreCounted(self):
+        board = Board()
+        board.perform_move(2, 4)
+        self.assertEquals(4, board.count(reversi.BLACK))
+        self.assertEquals(1, board.count(reversi.WHITE))
