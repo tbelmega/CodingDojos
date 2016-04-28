@@ -137,13 +137,16 @@ class ReversiTest(unittest.TestCase):
         # ARRANGE
         board = Board()
         board.board[2][4] = reversi.WHITE
+        board.board[2][5] = reversi.WHITE
         board.board[1][3] = reversi.WHITE
         board.board[1][2] = reversi.BLACK
         # ACT
         board.perform_move(1, 4)
         # ASSERT
+        board.pretty_print()
         self.assertEquals(reversi.BLACK, board.get(1, 3))
         self.assertEquals(reversi.BLACK, board.get(2, 4))
+        self.assertEquals(reversi.WHITE, board.get(2, 5))
         self.assertEquals(reversi.BLACK, board.get(3, 4))
 
     def testThatTokensOnBoardAreCounted(self):
@@ -168,11 +171,11 @@ class ReversiTest(unittest.TestCase):
         move = board.find_best_legal_move()
         self.assertEquals(Field(1, 4), move)
 
-    def testAiGame(self):
-        board = Board()
-        winner = None
-        while winner is None:
-            winner = board.ai_move()
-        print("\nWinner: " + winner)
-        self.assertTrue(winner == reversi.BLACK or winner == reversi.WHITE)
+    # def testAiGame(self):
+    #     board = Board()
+    #     winner = None
+    #     while winner is None:
+    #         winner = board.ai_move()
+    #     print("\nWinner: " + winner)
+    #     self.assertTrue(winner == reversi.BLACK or winner == reversi.WHITE)
 

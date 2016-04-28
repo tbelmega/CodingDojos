@@ -3,7 +3,7 @@ This is an implementation of the KataReversi <href>http://codingdojo.org/cgi-bin
 The task is to return a representation of all legal moves for a player in the Reversi game,
 given a board situation and the color of the player.
 """
-from copy import copy, deepcopy
+from copy import deepcopy
 
 TIE = "Tie"
 
@@ -59,6 +59,7 @@ class Board:
 
     def pretty_print(self):
         Board.print_board(self.board)
+        print "\n"
 
     def pretty_print_legal_moves(self, player):
         board_copy = deepcopy(self.board)
@@ -210,3 +211,29 @@ class Board:
             return WHITE
         else:
             return TIE
+
+
+def main():
+    board = Board()
+    winner = None
+    while winner is None:
+        winner = board.ai_move()
+        legal = board.get_legal_moves(board.current_player)
+        if not legal:
+            winner = board.winning_player()
+        else:
+            moved = False
+            while not moved:
+                print "Your move"
+                row = int(raw_input('row: '))
+                column = int(raw_input('column: '))
+                moved = board.perform_move(row, column)
+                if not moved:
+                    print("That move is not legal, try again.\n")
+            board.pretty_print()
+    print "\n"
+    print "Game over! The winner is " + winner + "!"
+
+
+if __name__ == "__main__":
+    main()
