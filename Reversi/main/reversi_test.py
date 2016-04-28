@@ -152,6 +152,11 @@ class ReversiTest(unittest.TestCase):
         self.assertEquals(4, board.count(reversi.BLACK))
         self.assertEquals(1, board.count(reversi.WHITE))
 
+    def testThatBoardPredictsNumberOfFlips(self):
+        board = Board()
+        flips = board.predict_flips(4, 2)
+        self.assertEquals(1, flips)
+
     def testThatBestLegalMoveIsFound(self):
         # ARRANGE
         board = Board()
@@ -159,5 +164,15 @@ class ReversiTest(unittest.TestCase):
         board.board[1][3] = reversi.WHITE
         board.board[1][2] = reversi.BLACK
         board.board[2][5] = reversi.BLACK
+        board.current_player = reversi.BLACK
+        move = board.find_best_legal_move()
+        self.assertEquals(Field(1, 4), move)
 
+    def testAiGame(self):
+        board = Board()
+        winner = None
+        while winner is None:
+            winner = board.ai_move()
+        print("\nWinner: " + winner)
+        self.assertTrue(winner == reversi.BLACK or winner == reversi.WHITE)
 

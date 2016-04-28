@@ -5,9 +5,11 @@ given a board situation and the color of the player.
 """
 from copy import copy, deepcopy
 
+TIE = "Tie"
+
 EMPTY_FIELD = '.'
-BLACK = 'B'
-WHITE = 'W'
+BLACK = 'O'
+WHITE = 'x'
 
 
 def get_opponent(player):
@@ -47,8 +49,8 @@ class Board:
             ['.', '.', '.', '.', '.', '.', '.', '.'],
             ['.', '.', '.', '.', '.', '.', '.', '.'],
             ['.', '.', '.', '.', '.', '.', '.', '.'],
-            ['.', '.', '.', 'B', 'W', '.', '.', '.'],
-            ['.', '.', '.', 'W', 'B', '.', '.', '.'],
+            ['.', '.', '.', BLACK, WHITE, '.', '.', '.'],
+            ['.', '.', '.', WHITE, BLACK, '.', '.', '.'],
             ['.', '.', '.', '.', '.', '.', '.', '.'],
             ['.', '.', '.', '.', '.', '.', '.', '.'],
             ['.', '.', '.', '.', '.', '.', '.', '.']
@@ -115,8 +117,11 @@ class Board:
         return False
 
     def check_for_legal_constellation(self, field, vert, hor):
-        constellation_is_within_bounds = self.within_board_bounds(field, vert, hor)
+        constellation_is_within_bounds = self.within_board_bounds(field.column, 2 * hor, field.row, 2 * vert)
         return constellation_is_within_bounds and self._legal_move_(field, vert, hor)
+
+    def within_board_bounds(self, hor, look_hor, vert, look_vert):
+        return vert + look_vert < self.rows() and hor + look_hor < self.columns()
 
     def _legal_move_(self, field, vert, hor):
         return self.adjacent_field_covered_by_opponent(field, vert, hor) \
@@ -128,32 +133,33 @@ class Board:
     def adjacent_field_covered_by_opponent(self, field, vert, hor):
         return self.get(field.row + 1 * vert, field.column + 1 * hor) == get_opponent(self.current_player)
 
-    def within_board_bounds(self, field, vert, hor):
-        return field.row + 2 * vert < self.rows() and field.column + 2 * hor < self.columns()
-
-    def perform_move(self, vert, hor):
-        legal = self.is_legal_move(Field(vert, hor))
+    def perform_move(self, row, column):
+        legal = self.is_legal_move(Field(row, column))
         if legal:
-            self.place_token(vert, hor)
+            self.place_token(row, column)
             self.current_player = get_opponent(self.current_player)
             return True
         else:
             return False
 
-    def place_token(self, vert, hor):
+    def place_token(self, row, column):
         """Place own token on the specified field
-        and look in all 4 directions for flippable opponent's tokens."""
-        self.board[vert][hor] = self.current_player
-        self.flip(vert, hor, -1, 0)
-        self.flip(vert, hor, 1, 0)
-        self.flip(vert, hor, 0, -1)
-        self.flip(vert, hor, 0, 1)
+        and look in all 8 directions for flippable opponent's tokens."""
+        self.board[row][column] = self.current_player
+        for vert in range(-1, 2):
+            for hor in range(-1, 2):
+                # check all combinations of vertical and horizontal deltas, apart from (0, 0)
+                if not (vert == 0 and hor == 0):
+                    self.flip(row, column, vert, hor)
 
-    def flip(self, vert, hor, look_vert, look_hor):
-        if vert + look_vert < len(self.board) and hor + look_hor < len(self.board[vert]):
-            if self.board[vert + look_vert][hor + look_hor] == get_opponent(self.current_player):
-                self.board[vert + look_vert][hor + look_hor] = self.current_player
-                self.flip(vert + look_vert, hor + look_hor, look_vert, look_hor)
+    def flip(self, row, column, look_vert, look_hor):
+        if self.within_board_bounds(column, look_hor, row, look_vert):
+            if self.is_flippable(column, look_hor, row, look_vert):
+                self.board[row + look_vert][column + look_hor] = self.current_player
+                self.flip(row + look_vert, column + look_hor, look_vert, look_hor)
+
+    def is_flippable(self, hor, look_hor, vert, look_vert):
+        return self.board[vert + look_vert][hor + look_hor] == get_opponent(self.current_player)
 
     def count(self, player):
         count = 0
@@ -163,4 +169,44 @@ class Board:
                     count += 1
         return count
 
+    def predict_flips(self, row, column):
+        prediction = 0
+        for vert in range(-1, 2):
+            for hor in range(-1, 2):
+                if not (vert == 0 and hor == 0):
+                    prediction += self.predict_flips_in_direction(row, column, vert, hor)
+        return prediction
 
+    def predict_flips_in_direction(self, row, column, look_vert, look_hor):
+        if self.within_board_bounds(column, look_hor, row, look_vert):
+            if self.is_flippable(column, look_hor, row, look_vert):
+                return 1 + self.predict_flips_in_direction(row + look_vert, column + look_hor, look_vert, look_hor)
+        return 0
+
+    def find_best_legal_move(self):
+        best_prediction = 0
+        best_move = None
+        for move in self.get_legal_moves(self.current_player):
+            prediction = self.predict_flips(move.row, move.column)
+            if prediction > best_prediction:
+                best_move = move
+                best_prediction = prediction
+        return best_move
+
+    def ai_move(self):
+        move = self.find_best_legal_move()
+        if move is None:
+            return self.winning_player()
+        self.perform_move(move.row, move.column)
+        print ""
+        self.pretty_print()
+
+    def winning_player(self):
+        black = self.count(BLACK)
+        white = self.count(WHITE)
+        if black > white:
+            return BLACK
+        elif white > black:
+            return WHITE
+        else:
+            return TIE
